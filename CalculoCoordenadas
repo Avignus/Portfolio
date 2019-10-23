@@ -1,0 +1,65 @@
+//Este programa calcula a distância entre dois pontos em JS.
+class Coordenada {
+	setValor(valor){
+  	let caso = (valor||"").match(/(\d{1,3})° (\d{1,2})\' ?(\d{0,2}\.?\d{0,2})\"/);
+    if(caso === null)
+    	throw new Error("Coordenada não se encaixa no padrão");
+    
+    let [graus, min, seg] = caso.slice(1).map(v=>parseFloat(v));
+ 
+    if(seg >= 60){ min = min + Math.floor(seg / 60); seg = seg % 60; }
+    if(min >= 60){ graus = graus + Math.floor(min / 60); min = min % 60;}
+    
+    if(graus >= 360) graus = graus%360;
+
+    this.val_str = valor;
+    this.val_gms = {
+    	graus, min, seg
+    };
+    this.val_graus_dec = graus + ((min + (seg / 60)) / 60);
+    this.val_rad = this.val_graus_dec / 180 * Math.PI;
+    
+  }
+  constructor(valor){
+    this.setValor(valor);
+  }
+}
+class Posicionado {
+  setLat(lat){
+    this.lat.setValor(lat);
+  }
+  setLon(lon){
+    this.lon.setValor(lon);
+  }
+  constructor(lat,lon){
+    this.lat = new Coordenada(lat);
+    this.lon = new Coordenada(lon);    
+  }
+calcula_distancia(outro){
+    let lat2 = outro.lat.val_rad; //Já em radianos!
+    let lon2 = outro.lon.val_rad;
+    let lat1 = this.lat.val_rad;
+    let lon1 = this.lon.val_rad;
+    //cálculos...
+    
+    let R = 6371e3; // metres
+    let φ1 = lat1;//.toRadians();
+    let φ2 = lat2;//.toRadians();
+    let Δφ = (lat2-lat1);//.toRadians();
+    let Δλ = (lon2-lon1);//.toRadians();
+
+    let a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    let d = R * c;
+
+    return d/1000;
+
+	}
+}
+
+let a = new Posicionado("01° 00' 00.00\"", "01° 00' 00.00\"");
+let b = new Posicionado("01° 00' 00.00\"", "01° 01' 00.00\"");
+alert(a.calcula_distancia(b));
